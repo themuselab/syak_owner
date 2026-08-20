@@ -1,0 +1,21 @@
+# 의존성
+node_modules/
+
+# 빌드 산출물
+dist/
+*.tsbuildinfo
+
+# 환경변수 (API 주소 등)
+.env
+.env.*
+!.env.example
+
+# 에디터 / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
+npm-debug.log*

@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-zinc-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-400; }
+}
+
+@layer components {
+  /* 흰 카드 — 목업의 기본 서페이스 */
+  .card {
+    @apply bg-white rounded-2xl border border-line shadow-card;
+  }
+
+  /* 상단 네비게이션 pill */
+  .nav-pill {
+    @apply flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+           text-muted hover:text-ink hover:bg-zinc-100
+           transition-colors duration-150 cursor-pointer;
+  }
+  .nav-pill.active {
+    @apply text-ink bg-zinc-100 font-semibold;
+  }
+
+  /* 우상단 아이콘 버튼 (알림 / 프로필) */
+  .icon-btn {
+    @apply flex h-9 w-9 items-center justify-center rounded-full
+           text-muted hover:text-ink hover:bg-zinc-100
+           transition-colors duration-150 cursor-pointer;
+  }
+
+  /* 핑크 CTA 버튼 */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-500
+           px-5 py-3 text-sm font-semibold text-white
+           hover:bg-brand-600 active:bg-brand-700
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-colors duration-150;
+  }
+  /* 보조(라인) 버튼 */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white
+           px-5 py-3 text-sm font-semibold text-ink
+           hover:bg-zinc-50 disabled:opacity-50 transition-colors duration-150;
+  }
+  /* 폼 인풋 */
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink
+           placeholder:text-faint outline-none
+           focus:border-brand-400 focus:ring-2 focus:ring-brand-100
+           transition-colors duration-150;
+  }
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+  /* 선택 칩(시술 항목/시간대 등) */
+  .chip {
+    @apply inline-flex items-center justify-center rounded-lg border border-line bg-white
+           px-3 py-2 text-sm text-muted
+           hover:border-brand-300 transition-colors duration-150 cursor-pointer select-none;
+  }
+  .chip.on {
+    @apply border-brand-500 bg-brand-50 text-brand-600 font-semibold;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .brand-gradient {
+    background: linear-gradient(135deg, #f472b6 0%, #ec4899 55%, #db2777 100%);
+  }
+  /* 온보딩(랜딩/로그인) 배경의 파스텔 그라데이션 오브 */
+  .auth-blob {
+    @apply pointer-events-none absolute rounded-full blur-3xl opacity-60 animate-blob-float;
+  }
+}
