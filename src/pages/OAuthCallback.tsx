@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
 import { useAuth } from '@/app/auth';
 import { api, ApiError, type Provider } from '@/lib/api';
-import { redirectUriFor } from '@/lib/social';
+import { redirectUriFor, consumeNaverState } from '@/lib/social';
 
 const VALID: Provider[] = ['kakao', 'naver', 'apple'];
 
@@ -25,12 +25,18 @@ export function OAuthCallback() {
     ran.current = true;
     const p = provider as Provider;
     const code = params.get('code');
+    const state = params.get('state');
     const oauthErr = params.get('error');
     void (async () => {
       if (!VALID.includes(p)) { setErr('지원하지 않는 로그인입니다'); return; }
       if (oauthErr || !code) { setErr('로그인이 취소되었어요'); return; }
+      // 네이버: CSRF state 검증 (저장한 값과 콜백 state 일치)
+      if (p === 'naver') {
+        const saved = consumeNaverState();
+        if (!state || state !== saved) { setErr('보안 검증에 실패했어요. 다시 시도해주세요.'); return; }
+      }
       try {
-        const res = await api.auth.socialCode(p, code, redirectUriFor(p));
+        const res = await api.auth.socialCode(p, code, redirectUriFor(p), state ?? undefined);
         await refresh();
         nav(res.shopLinked ? '/dashboard' : '/link', { replace: true });
       } catch (e) {

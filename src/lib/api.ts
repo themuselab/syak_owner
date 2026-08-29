@@ -28,10 +28,11 @@ export const api = {
       request<LoginRes>(`/owner/auth/${provider}`, {
         method: 'POST', body: JSON.stringify({ access_token: accessToken }),
       }),
-    // 웹 authorize 콜백: 인가 code(+redirect_uri)를 백엔드가 access_token으로 교환.
-    socialCode: (provider: Provider, code: string, redirectUri: string) =>
+    // 웹 authorize 콜백: 인가 code(+redirect_uri, 네이버는 state)를 백엔드가 access_token으로 교환.
+    socialCode: (provider: Provider, code: string, redirectUri: string, state?: string) =>
       request<LoginRes>(`/owner/auth/${provider}`, {
-        method: 'POST', body: JSON.stringify({ code, redirect_uri: redirectUri }),
+        method: 'POST',
+        body: JSON.stringify({ code, redirect_uri: redirectUri, ...(state ? { state } : {}) }),
       }),
     me: () => request<OwnerMe>('/owner/auth/me'),
     logout: () => request<void>('/owner/auth/sign-out', { method: 'POST' }),

@@ -53,13 +53,41 @@ async function redirectKakao(): Promise<void> {
   K.Auth.authorize({ redirectUri: redirectUriFor('kakao') });
 }
 
+// ── Naver ────────────────────────────────────────────────────────
+// 네이버는 CSRF 방지 state가 필수. 리다이렉트 전에 저장 → 콜백에서 검증.
+const NAVER_STATE_KEY = 'syak_naver_oauth_state';
+
+export function consumeNaverState(): string | null {
+  try {
+    const s = sessionStorage.getItem(NAVER_STATE_KEY);
+    sessionStorage.removeItem(NAVER_STATE_KEY);
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+function redirectNaver(): void {
+  const clientId = env.VITE_NAVER_CLIENT_ID;
+  if (!clientId) throw new SocialConfigError('네이버 로그인 키(VITE_NAVER_CLIENT_ID)가 설정되지 않았습니다');
+  const state = (crypto.randomUUID?.() ?? String(Math.random()).slice(2)) + Date.now().toString(36);
+  try { sessionStorage.setItem(NAVER_STATE_KEY, state); } catch { /* private mode 등 */ }
+  const q = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    redirect_uri: redirectUriFor('naver'),
+    state,
+  });
+  window.location.href = `https://nid.naver.com/oauth2.0/authorize?${q}`;
+}
+
 /** provider 인가 페이지로 리다이렉트 시작. (반환 후 페이지가 떠남) */
 export async function startLogin(provider: Provider): Promise<void> {
   switch (provider) {
     case 'kakao':
       return redirectKakao();
     case 'naver':
-      throw new SocialConfigError('네이버 로그인은 키 등록 후 연결됩니다');
+      return redirectNaver();
     case 'apple':
       throw new SocialConfigError('애플 로그인은 키 등록 후 연결됩니다');
   }
