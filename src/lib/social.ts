@@ -16,10 +16,12 @@ export class SocialConfigError extends Error {}
 
 const env = import.meta.env as Record<string, string | undefined>;
 
-// 공개 클라이언트 키 fallback — Vercel env 미설정 시에도 동작하게(이 값들은 원래 클라이언트에
-// 박히는 공개키: 카카오 JavaScript 키, 네이버 client_id). env가 있으면 그게 우선.
-// ⚠️ 비밀값 아님(네이버 secret은 백엔드 전용이라 여기 없음).
-const KAKAO_JS_KEY = env.VITE_KAKAO_JS_KEY || '9031903041583ac1b4b01be5c45a5106';
+// 공개 클라이언트 키 fallback — Vercel env 미설정 시에도 동작하게.
+// 카카오는 OAuth code 플로우라 authorize·token의 client_id가 동일해야 하고, 정공법은 둘 다
+// REST API 키다(JS SDK authorize는 JS키를 client_id로 써서 백엔드 REST키 교환과 불일치 → 실패).
+// REST 키는 authorize URL에 노출되는 client_id 역할이라 공개값(비밀 아님). 네이버 client_id도 공개.
+// ⚠️ 네이버 secret은 백엔드 전용이라 여기 없음.
+const KAKAO_REST_KEY = env.VITE_KAKAO_REST_KEY || 'bb5046a818bee8b40405d90a9f150074';
 const NAVER_CLIENT_ID = env.VITE_NAVER_CLIENT_ID || '1MuTe1TgsNlcRvmpv5jP';
 
 /** 콜백 URL — authorize와 백엔드 토큰 교환에서 동일해야 하고, 콘솔 Redirect URI와 일치해야 함. */
@@ -27,36 +29,15 @@ export function redirectUriFor(provider: Provider): string {
   return `${window.location.origin}/oauth/${provider}`;
 }
 
-function loadScript(src: string, id: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) return resolve();
-    const s = document.createElement('script');
-    s.id = id; s.src = src; s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error(`스크립트 로드 실패: ${src}`));
-    document.head.appendChild(s);
-  });
-}
-
 // ── Kakao ────────────────────────────────────────────────────────
-interface KakaoSDK {
-  init(key: string): void;
-  isInitialized(): boolean;
-  Auth: { authorize(opts: { redirectUri: string }): void };
-}
-function kakao(): KakaoSDK | undefined {
-  return (window as unknown as { Kakao?: KakaoSDK }).Kakao;
-}
-
-async function redirectKakao(): Promise<void> {
-  const key = KAKAO_JS_KEY;
-  if (!key) throw new SocialConfigError('카카오 로그인 키(VITE_KAKAO_JS_KEY)가 설정되지 않았습니다');
-  await loadScript('https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js', 'kakao-sdk');
-  const K = kakao();
-  if (!K) throw new Error('카카오 SDK 초기화 실패');
-  if (!K.isInitialized()) K.init(key);
-  // 카카오 인가 페이지로 전체 리다이렉트 → 완료 후 redirectUri 로 ?code= 붙어 복귀.
-  K.Auth.authorize({ redirectUri: redirectUriFor('kakao') });
+function redirectKakao(): void {
+  // 정석 REST OAuth: client_id=REST키로 authorize → code → 백엔드가 같은 REST키로 token 교환.
+  const q = new URLSearchParams({
+    response_type: 'code',
+    client_id: KAKAO_REST_KEY,
+    redirect_uri: redirectUriFor('kakao'),
+  });
+  window.location.href = `https://kauth.kakao.com/oauth/authorize?${q}`;
 }
 
 // ── Naver ────────────────────────────────────────────────────────
