@@ -1,0 +1,31 @@
+# 샥 사장님 — 공개 랜딩(/)만 색인, 로그인/기능 페이지는 제외
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /link
+Disallow: /dashboard
+Disallow: /history
+Disallow: /settings
+Disallow: /oauth
+
+# 네이버(NEO)
+User-agent: Yeti
+Allow: /
+Disallow: /login
+Disallow: /dashboard
+User-agent: Naverbot
+Allow: /
+
+# AI 답변엔진(GEO)
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://owner.themuselab.kr/sitemap.xml
