@@ -16,6 +16,12 @@ export class SocialConfigError extends Error {}
 
 const env = import.meta.env as Record<string, string | undefined>;
 
+// 공개 클라이언트 키 fallback — Vercel env 미설정 시에도 동작하게(이 값들은 원래 클라이언트에
+// 박히는 공개키: 카카오 JavaScript 키, 네이버 client_id). env가 있으면 그게 우선.
+// ⚠️ 비밀값 아님(네이버 secret은 백엔드 전용이라 여기 없음).
+const KAKAO_JS_KEY = env.VITE_KAKAO_JS_KEY || '9031903041583ac1b4b01be5c45a5106';
+const NAVER_CLIENT_ID = env.VITE_NAVER_CLIENT_ID || '1MuTe1TgsNlcRvmpv5jP';
+
 /** 콜백 URL — authorize와 백엔드 토큰 교환에서 동일해야 하고, 콘솔 Redirect URI와 일치해야 함. */
 export function redirectUriFor(provider: Provider): string {
   return `${window.location.origin}/oauth/${provider}`;
@@ -43,7 +49,7 @@ function kakao(): KakaoSDK | undefined {
 }
 
 async function redirectKakao(): Promise<void> {
-  const key = env.VITE_KAKAO_JS_KEY;
+  const key = KAKAO_JS_KEY;
   if (!key) throw new SocialConfigError('카카오 로그인 키(VITE_KAKAO_JS_KEY)가 설정되지 않았습니다');
   await loadScript('https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js', 'kakao-sdk');
   const K = kakao();
@@ -68,7 +74,7 @@ export function consumeNaverState(): string | null {
 }
 
 function redirectNaver(): void {
-  const clientId = env.VITE_NAVER_CLIENT_ID;
+  const clientId = NAVER_CLIENT_ID;
   if (!clientId) throw new SocialConfigError('네이버 로그인 키(VITE_NAVER_CLIENT_ID)가 설정되지 않았습니다');
   const state = (crypto.randomUUID?.() ?? String(Math.random()).slice(2)) + Date.now().toString(36);
   try { sessionStorage.setItem(NAVER_STATE_KEY, state); } catch { /* private mode 등 */ }
