@@ -1,17 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Apple, MessageCircle } from 'lucide-react';
 import { OnboardHeader } from '@/components/OnboardHeader';
 import { AuthBackdrop } from '@/components/ui/AuthBackdrop';
 import { InquiryModal } from '@/components/InquiryModal';
 import { Spinner } from '@/components/ui/Spinner';
-import { useAuth } from '@/app/auth';
-import { api, ApiError, type Provider } from '@/lib/api';
-import { getSocialToken, SocialConfigError } from '@/lib/social';
+import { ApiError, type Provider } from '@/lib/api';
+import { startLogin, SocialConfigError } from '@/lib/social';
 
 export function Login() {
-  const nav = useNavigate();
-  const { refresh } = useAuth();
   const [busy, setBusy] = useState<Provider | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [inquiry, setInquiry] = useState(false);
@@ -20,15 +16,13 @@ export function Login() {
     if (busy) return;
     setBusy(provider); setErr(null);
     try {
-      const token = await getSocialToken(provider);
-      const res = await api.auth.social(provider, token);
-      await refresh();
-      nav(res.shopLinked ? '/dashboard' : '/link', { replace: true });
+      // provider 인가 페이지로 리다이렉트 → 복귀는 /oauth/:provider 콜백에서 처리.
+      // 성공 시 이 페이지는 떠나므로 이후 코드는 실행되지 않는다(에러일 때만 아래 catch).
+      await startLogin(provider);
     } catch (e) {
       if (e instanceof SocialConfigError) setErr(e.message);
       else if (e instanceof ApiError) setErr(e.message);
       else setErr(e instanceof Error ? e.message : '로그인에 실패했어요. 다시 시도해주세요.');
-    } finally {
       setBusy(null);
     }
   }

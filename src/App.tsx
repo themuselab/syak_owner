@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
+import { OAuthCallback } from '@/pages/OAuthCallback';
 import { LinkCode } from '@/pages/LinkCode';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -28,6 +29,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<RedirectIfReady><Login /></RedirectIfReady>} />
+            <Route path="/oauth/:provider" element={<OAuthCallback />} />
             <Route path="/link" element={<RequireAuth><LinkCode /></RequireAuth>} />
 
             <Route element={<RequireAuth needShop><AppLayout /></RequireAuth>}>
