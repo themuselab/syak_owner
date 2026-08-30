@@ -24,8 +24,8 @@ const env = import.meta.env as Record<string, string | undefined>;
 const KAKAO_REST_KEY = env.VITE_KAKAO_REST_KEY || 'bb5046a818bee8b40405d90a9f150074';
 const NAVER_CLIENT_ID = env.VITE_NAVER_CLIENT_ID || '1MuTe1TgsNlcRvmpv5jP';
 
-// 애플 Services ID(웹 client_id). env로만(공개값이지만 서비스별이라 fallback 안 둠).
-const APPLE_CLIENT_ID = env.VITE_APPLE_CLIENT_ID || '';
+// 애플 Services ID(웹 client_id, 공개값). env 있으면 우선.
+const APPLE_CLIENT_ID = env.VITE_APPLE_CLIENT_ID || 'kr.themuselab.syak.owner';
 
 /** 콜백 URL — authorize와 백엔드 토큰 교환에서 동일해야 하고, 콘솔 Redirect URI와 일치해야 함. */
 export function redirectUriFor(provider: Provider): string {
