@@ -4,10 +4,14 @@ import { OnboardHeader } from '@/components/OnboardHeader';
 import { AuthBackdrop } from '@/components/ui/AuthBackdrop';
 import { InquiryModal } from '@/components/InquiryModal';
 import { Spinner } from '@/components/ui/Spinner';
-import { ApiError, type Provider } from '@/lib/api';
-import { startLogin, SocialConfigError } from '@/lib/social';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/app/auth';
+import { api, ApiError, type Provider } from '@/lib/api';
+import { startLogin, getAppleIdToken, SocialConfigError } from '@/lib/social';
 
 export function Login() {
+  const nav = useNavigate();
+  const { refresh } = useAuth();
   const [busy, setBusy] = useState<Provider | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [inquiry, setInquiry] = useState(false);
@@ -16,9 +20,17 @@ export function Login() {
     if (busy) return;
     setBusy(provider); setErr(null);
     try {
-      // provider 인가 페이지로 리다이렉트 → 복귀는 /oauth/:provider 콜백에서 처리.
-      // 성공 시 이 페이지는 떠나므로 이후 코드는 실행되지 않는다(에러일 때만 아래 catch).
-      await startLogin(provider);
+      if (provider === 'apple') {
+        // 애플은 팝업 → id_token 즉시 반환 → 백엔드 검증 → 이동(카카오/네이버 리다이렉트와 다름)
+        const idToken = await getAppleIdToken();
+        const res = await api.auth.social('apple', idToken);
+        await refresh();
+        nav(res.shopLinked ? '/dashboard' : '/link', { replace: true });
+      } else {
+        // 카카오/네이버는 인가 페이지로 리다이렉트 → 복귀는 /oauth/:provider 콜백에서 처리.
+        // 성공 시 이 페이지는 떠나므로 이후 코드는 실행되지 않는다(에러일 때만 아래 catch).
+        await startLogin(provider);
+      }
     } catch (e) {
       if (e instanceof SocialConfigError) setErr(e.message);
       else if (e instanceof ApiError) setErr(e.message);
