@@ -32,17 +32,6 @@ export function redirectUriFor(provider: Provider): string {
   return `${window.location.origin}/oauth/${provider}`;
 }
 
-function loadScript(src: string, id: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) return resolve();
-    const s = document.createElement('script');
-    s.id = id; s.src = src; s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error(`스크립트 로드 실패: ${src}`));
-    document.head.appendChild(s);
-  });
-}
-
 // ── Kakao ────────────────────────────────────────────────────────
 function redirectKakao(): void {
   // 정석 REST OAuth: client_id=REST키로 authorize → code → 백엔드가 같은 REST키로 token 교환.
@@ -83,37 +72,20 @@ function redirectNaver(): void {
 }
 
 // ── Apple ────────────────────────────────────────────────────────
-// 웹은 Apple JS SDK 팝업으로 id_token을 받아 백엔드가 검증(audience=Services ID).
-// code 교환을 안 하므로 .p8/client_secret 불필요. (리다이렉트 대신 팝업 → 토큰 즉시 반환)
-interface AppleAuthJS {
-  auth: {
-    init(o: { clientId: string; scope: string; redirectURI: string; usePopup: boolean }): void;
-    signIn(): Promise<{ authorization?: { id_token?: string; code?: string } }>;
-  };
-}
-function appleSdk(): AppleAuthJS | undefined {
-  return (window as unknown as { AppleID?: AppleAuthJS }).AppleID;
-}
-
-/** 애플 로그인(팝업) → id_token 반환. (kakao/naver의 redirect와 달리 토큰을 바로 돌려줌) */
-export async function getAppleIdToken(): Promise<string> {
+// redirect+code 방식(카카오/네이버와 동일). name/email scope 없이 response_mode=query →
+// GET ?code 로 복귀 → 백엔드가 .p8로 client_secret 만들어 code→id_token 교환. (도메인 인증 불필요)
+function redirectApple(): void {
   if (!APPLE_CLIENT_ID) throw new SocialConfigError('애플 로그인 키(VITE_APPLE_CLIENT_ID)가 설정되지 않았습니다');
-  await loadScript('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js', 'apple-sdk');
-  const A = appleSdk();
-  if (!A) throw new Error('애플 SDK 초기화 실패');
-  A.auth.init({
-    clientId: APPLE_CLIENT_ID,
-    scope: 'name email',
-    redirectURI: redirectUriFor('apple'), // Services ID의 Return URL과 일치해야 함
-    usePopup: true,
+  const q = new URLSearchParams({
+    response_type: 'code',
+    response_mode: 'query', // scope 없이 → query 모드로 ?code GET 복귀(form_post 회피)
+    client_id: APPLE_CLIENT_ID,
+    redirect_uri: redirectUriFor('apple'),
   });
-  const res = await A.auth.signIn();
-  const idToken = res?.authorization?.id_token;
-  if (!idToken) throw new Error('애플 id_token 없음');
-  return idToken;
+  window.location.href = `https://appleid.apple.com/auth/authorize?${q}`;
 }
 
-/** provider 인가 페이지로 리다이렉트 시작(kakao/naver). apple은 팝업이라 getAppleIdToken 사용. */
+/** provider 인가 페이지로 리다이렉트 시작. 복귀는 /oauth/:provider 콜백에서 처리. */
 export async function startLogin(provider: Provider): Promise<void> {
   switch (provider) {
     case 'kakao':
@@ -121,6 +93,6 @@ export async function startLogin(provider: Provider): Promise<void> {
     case 'naver':
       return redirectNaver();
     case 'apple':
-      throw new SocialConfigError('애플은 getAppleIdToken(팝업)으로 처리합니다');
+      return redirectApple();
   }
 }
