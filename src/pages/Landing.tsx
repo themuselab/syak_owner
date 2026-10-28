@@ -4,6 +4,7 @@ import { Bell, ArrowRight, CalendarClock, BellRing, CheckCircle2 } from 'lucide-
 import { OnboardHeader } from '@/components/OnboardHeader';
 import { InquiryModal } from '@/components/InquiryModal';
 import { Logo } from '@/components/ui/Logo';
+import { track } from '@/lib/analytics';
 
 const STEPS = [
   { n: 1, title: '빈자리를 등록하세요', desc: '취소·노쇼로 갑자기 빈 시술 시간을 30초 만에 등록해요.' },
@@ -43,10 +44,10 @@ export function Landing() {
             <Logo className="text-base md:text-lg" />이 그 시간을 기다리던 대기 고객에게 바로 알려드려요.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <button className="btn-primary px-6 py-3.5 text-base" onClick={() => nav('/login')}>
+            <button className="btn-primary px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'hero_start' }); nav('/login'); }}>
               시작하기 <ArrowRight className="h-4 w-4" />
             </button>
-            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => setInquiry(true)}>
+            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'hero_inquiry' }); setInquiry(true); }}>
               도입 문의
             </button>
           </div>
@@ -97,10 +98,10 @@ export function Landing() {
             버려지는 예약시간을,<br className="sm:hidden" /> 오늘의 매출로
           </h2>
           <div className="relative mt-6 flex flex-wrap justify-center gap-3">
-            <button className="btn-primary px-6 py-3.5 text-base" onClick={() => nav('/login')}>
+            <button className="btn-primary px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'bottom_start' }); nav('/login'); }}>
               로그인하고 시작
             </button>
-            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => setInquiry(true)}>
+            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'bottom_inquiry' }); setInquiry(true); }}>
               살펴보기
             </button>
           </div>
@@ -114,9 +115,10 @@ export function Landing() {
   );
 }
 
-const FOOTER_COLS: { title: string; items: string[] }[] = [
+// href 있는 항목만 링크. 사장님 가이드(/guide/, 정적 페이지)는 검색 유입용이라 링크로 연결.
+const FOOTER_COLS: { title: string; items: (string | { label: string; href: string })[] }[] = [
   { title: '제품', items: ['빈자리 등록', '취소석 알림', '대기 매칭'] },
-  { title: '지원', items: ['도입 문의', '자주 묻는 질문', '고객센터'] },
+  { title: '지원', items: ['도입 문의', { label: '노쇼·빈자리 가이드', href: '/guide/' }, '고객센터'] },
   { title: '회사', items: ['소개', '블로그'] },
   { title: '문의', items: ['이용약관', '개인정보'] },
 ];
@@ -136,9 +138,15 @@ function LandingFooter() {
                   <Icon className="h-3.5 w-3.5 text-brand-400" /> {col.title}
                 </div>
                 <ul className="mt-3 space-y-2">
-                  {col.items.map((it) => (
-                    <li key={it} className="text-sm text-muted hover:text-ink cursor-pointer">{it}</li>
-                  ))}
+                  {col.items.map((it) =>
+                    typeof it === 'string' ? (
+                      <li key={it} className="text-sm text-muted hover:text-ink cursor-pointer">{it}</li>
+                    ) : (
+                      <li key={it.label} className="text-sm text-muted hover:text-ink">
+                        <a href={it.href}>{it.label}</a>
+                      </li>
+                    ),
+                  )}
                 </ul>
               </div>
             );

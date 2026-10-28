@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
+import { track } from '@/lib/analytics';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,7 @@ export function InquiryModal({ open, onClose }: { open: boolean; onClose: () => 
     try {
       await api.inquiry.submit({ shopName: shopName.trim(), contact: contact.trim(), gu: gu.trim(), category, note: note.trim() || undefined });
       setDone(true);
+      track('owner_inquiry_submit', { category, gu: gu.trim() });
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : '문의 전송에 실패했어요. 잠시 후 다시 시도해주세요.');
     } finally {

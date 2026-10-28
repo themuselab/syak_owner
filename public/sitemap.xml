@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://owner.themuselab.kr/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/</loc><lastmod>2026-10-28</lastmod><priority>1.0</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/nail/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/hair/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/eyelash/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/waxing/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/skincare/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/massage/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/pmu/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
+<url><loc>https://owner.themuselab.kr/guide/tanning/</loc><lastmod>2026-10-28</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>
 </urlset>
