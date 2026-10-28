@@ -3,6 +3,17 @@
 취소·노쇼로 빈 시술 시간을 대기 고객에게 알려 매출로 전환하는 **사장님용** 웹앱.
 관리자(syak_admin)·소비자(syak)와 **같은 EC2 백엔드(syak_BE)** 를 사용한다. 프론트만 별도.
 
+## 아키텍처
+
+![샥 사장님 웹 아키텍처](docs/diagrams/architecture.png)
+
+인터랙티브 버전: [docs/diagrams/architecture.html](docs/diagrams/architecture.html) (다운로드 후 브라우저로 열기)
+
+- Vercel이 SPA·정적 가이드(`public/guide`)를 서빙하고, `/api/*`는 `api.themuselab.kr`로 rewrite → 같은 도메인 쿠키(`syak_owner_*`)로 인증
+- 소셜 로그인(Kakao·Naver·Apple)은 redirect → `/oauth/:provider`로 code 복귀 → 백엔드가 토큰 교환
+- 빈자리 등록(`POST /owner/slots`, `notify: true`) → 백엔드가 대기 고객에게 FCM 푸시
+- 검색엔진 → 업종별 가이드(`scripts/gen-guides.mjs`로 생성) → `/login` CTA, GA4 이벤트 계측
+
 ## 스택
 React 18 · Vite 5 · TypeScript · Tailwind 3 · react-router 6 · @tanstack/react-query
 (디자인 시스템·API 규약은 syak_admin을 계승 — 브랜드 핑크 + Pretendard, `/api/v1` 쿠키 인증)
