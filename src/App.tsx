@@ -8,16 +8,23 @@ import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { OAuthCallback } from '@/pages/OAuthCallback';
 import { LinkCode } from '@/pages/LinkCode';
-
-const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const History = lazy(() => import('@/pages/History').then((m) => ({ default: m.History })));
-const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
+import { api } from '@/lib/api';
 
 const qc = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: false },
   },
 });
+
+// 청크 → 데이터 → 차트 청크 순의 워터폴 방지: 페이지 청크·대시보드 데이터·차트 청크를 동시에 시작.
+// (로그인+연동 후 처음 렌더될 때만 호출되므로 미인증 요청은 나가지 않음. 같은 queryKey라 useQuery가 이 결과를 재사용)
+const Dashboard = lazy(() => {
+  void qc.prefetchQuery({ queryKey: ['dashboard'], queryFn: api.dashboard.get });
+  void import('@/components/ViewsChart');
+  return import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard }));
+});
+const History = lazy(() => import('@/pages/History').then((m) => ({ default: m.History })));
+const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
 
 const page = (el: React.ReactNode) => <Suspense fallback={<PageSpinner />}>{el}</Suspense>;
 

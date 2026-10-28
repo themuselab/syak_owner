@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { Plus, Bell, RefreshCw, Wallet, Mail, User, ArrowUp, ArrowDown } from 'lucide-react';
 import { api } from '@/lib/api';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { SlotFormModal } from '@/components/SlotFormModal';
 import { SLOT_STATUS, timeRange, serviceText, dayLabel } from '@/lib/slot';
 import { fmtNumber, cn } from '@/lib/utils';
+
+// 차트(recharts) 번들은 따로 — App의 Dashboard 로더가 미리 받아두므로 여기선 대개 즉시 resolve
+const ViewsChart = lazy(() => import('@/components/ViewsChart'));
 
 export function Dashboard() {
   const [addOpen, setAddOpen] = useState(false);
@@ -58,17 +60,10 @@ export function Dashboard() {
           </div>
           <div className="mt-4 h-32">
             {data.views.daily.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.views.daily} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
-                  <XAxis dataKey="date" tickFormatter={(d) => d.slice(5).replace('-', '/')}
-                    tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                  <Bar dataKey="value" radius={[6, 6, 6, 6]} maxBarSize={22}>
-                    {data.views.daily.map((_, i) => (
-                      <Cell key={i} fill={i === data.views.daily.length - 1 ? '#18181b' : '#f9a8d4'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              // fallback 없이 h-32 박스를 그대로 비워 둬 레이아웃이 밀리지 않게
+              <Suspense fallback={null}>
+                <ViewsChart daily={data.views.daily} />
+              </Suspense>
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-faint">조회수 데이터가 아직 없어요</div>
             )}
