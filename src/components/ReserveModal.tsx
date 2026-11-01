@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { api, ApiError, type OwnerSlot } from '@/lib/api';
 import { timeRange } from '@/lib/slot';
+import { track } from '@/lib/analytics';
 
 export function ReserveModal({ open, onClose, slot }: { open: boolean; onClose: () => void; slot: OwnerSlot | null }) {
   const qc = useQueryClient();
@@ -16,7 +17,12 @@ export function ReserveModal({ open, onClose, slot }: { open: boolean; onClose: 
       customer: customer.trim() || null,
       amount: amount ? parseInt(amount.replace(/[^0-9]/g, ''), 10) : null,
     }),
-    onSuccess: () => {
+    // '예약 성사' = 사장님이 빈자리를 reserved로 표시 — 우리가 가진 유일한 실제 예약 신호.
+    // 중복 방지: POST /reserve 성공 응답 1건당 1회(진행 중 버튼 disabled, 성공 후 모달 닫힘·reserved 슬롯엔 버튼 미노출).
+    onSuccess: (updated) => {
+      const slotId = updated?.id ?? slot!.id;
+      track('slot_status_change', { slot_id: slotId, status: updated?.status ?? 'reserved' });
+      track('booking_received', { shop_id: updated?.shopId ?? slot!.shopId, slot_id: slotId });
       qc.invalidateQueries({ queryKey: ['slots'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
       qc.invalidateQueries({ queryKey: ['owner-notifications'] });

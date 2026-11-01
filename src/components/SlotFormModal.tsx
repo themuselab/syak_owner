@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { api, ApiError, type OwnerSlot } from '@/lib/api';
 import { cn, ymd, relativeDayLabel } from '@/lib/utils';
+import { useAuth } from '@/app/auth';
+import { track } from '@/lib/analytics';
 
 const TIMES = Array.from({ length: 15 }, (_, i) => `${String(9 + i).padStart(2, '0')}:00`); // 09:00~23:00
 const SERVICES = ['젤네일', '원컬러', '프렌치', '이달아트', '네일아트', '페디', '기타'];
@@ -19,6 +21,17 @@ interface Props {
 export function SlotFormModal({ open, onClose, slot }: Props) {
   const qc = useQueryClient();
   const editing = !!slot;
+  const { me } = useAuth();
+  const shopId = slot?.shopId ?? me?.shopId ?? null;
+
+  // slot_register_start — 신규 등록 모달이 열릴 때. 모달은 열릴 때마다 새로 마운트되므로(부모가 조건부 렌더)
+  // 중복 방지: opened ref로 마운트(열림)당 1회. StrictMode effect 이중 실행에도 ref 유지. 수정 모드는 제외.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || editing || !open) return;
+    opened.current = true;
+    track('slot_register_start', { shop_id: shopId });
+  }, [editing, open, shopId]);
 
   const [date, setDate] = useState<string>(slot?.date ?? ymd(0));
   const [start, setStart] = useState<string>(slot?.startTime ?? '');
@@ -51,13 +64,22 @@ export function SlotFormModal({ open, onClose, slot }: Props) {
       if (editing) return api.slots.update(slot!.id, { date, startTime: start, endTime: end, serviceItems: items });
       return api.slots.create({ date, startTime: start, endTime: end, serviceItems: items, notify: true });
     },
-    onSuccess: () => { invalidate(); onClose(); },
+    // 중복 방지: mutation onSuccess = 서버 성공 응답 1건당 1회(진행 중엔 버튼 disabled).
+    onSuccess: (saved) => {
+      if (editing) track('slot_register_edit', { shop_id: shopId, slot_id: slot!.id });
+      else track('slot_register_complete', { shop_id: saved.shopId ?? shopId, slot_id: saved.id });
+      invalidate(); onClose();
+    },
     onError: (e) => setErr(e instanceof ApiError ? e.message : '저장에 실패했어요'),
   });
 
   const del = useMutation({
     mutationFn: () => api.slots.remove(slot!.id),
-    onSuccess: () => { invalidate(); onClose(); },
+    // 중복 방지: DELETE 성공 응답 1건당 1회.
+    onSuccess: () => {
+      track('slot_register_delete', { shop_id: shopId, slot_id: slot!.id });
+      invalidate(); onClose();
+    },
     onError: (e) => setErr(e instanceof ApiError ? e.message : '삭제에 실패했어요'),
   });
 

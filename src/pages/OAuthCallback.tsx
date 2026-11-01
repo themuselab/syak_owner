@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useAuth } from '@/app/auth';
 import { api, ApiError, type Provider } from '@/lib/api';
 import { redirectUriFor, consumeNaverState } from '@/lib/social';
+import { track } from '@/lib/analytics';
 
 const VALID: Provider[] = ['kakao', 'naver', 'apple'];
 
@@ -37,6 +38,8 @@ export function OAuthCallback() {
       }
       try {
         const res = await api.auth.socialCode(p, code, redirectUriFor(p), state ?? undefined);
+        // 중복 방지: 이 effect는 ran ref로 1회만 실행되고, 인가 code는 1회용이라 재방문 시 백엔드가 거절 → 로그인 성공 1건당 정확히 1회.
+        track(res.isNewOwner ? 'owner_signup' : 'owner_login', { owner_id: res.owner.id, method: p });
         await refresh();
         nav(res.shopLinked ? '/dashboard' : '/link', { replace: true });
       } catch (e) {

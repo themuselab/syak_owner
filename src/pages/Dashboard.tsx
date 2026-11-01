@@ -1,8 +1,10 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Bell, RefreshCw, Wallet, Mail, User, ArrowUp, ArrowDown } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/app/auth';
+import { track } from '@/lib/analytics';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { SlotFormModal } from '@/components/SlotFormModal';
 import { SLOT_STATUS, timeRange, serviceText, dayLabel } from '@/lib/slot';
@@ -13,6 +15,16 @@ const ViewsChart = lazy(() => import('@/components/ViewsChart'));
 
 export function Dashboard() {
   const [addOpen, setAddOpen] = useState(false);
+  const { me } = useAuth();
+
+  // 중복 방지: 마운트당 1회(viewed ref — StrictMode effect 이중 실행에도 ref 유지). 쿼리 refetch/재렌더로는 재전송 안 함.
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (viewed.current || !me) return;
+    viewed.current = true;
+    track('owner_dashboard_view', { owner_id: me.id });
+  }, [me]);
+
   const { data, isLoading } = useQuery({ queryKey: ['dashboard'], queryFn: api.dashboard.get });
 
   if (isLoading || !data) return <PageSpinner />;
