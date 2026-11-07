@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { openInquiryForm } from '@/lib/inquiry';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { OnboardHeader } from '@/components/OnboardHeader';
@@ -79,7 +80,7 @@ export function LinkCode() {
             </p>
           ) : (
             <p className="mt-3 text-center text-xs text-faint">
-              전달받은 코드가 없나요? <button onClick={() => nav('/?inquiry=1')} className="font-semibold text-brand-500 hover:underline">문의하기</button>
+              전달받은 코드가 없나요? <button onClick={() => openInquiryForm('link_code')} className="font-semibold text-brand-500 hover:underline">문의하기</button>
             </p>
           )}
 

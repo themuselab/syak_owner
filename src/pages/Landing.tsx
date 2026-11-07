@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Bell, ArrowRight, CalendarClock, BellRing, CheckCircle2 } from 'lucide-react';
 import { OnboardHeader } from '@/components/OnboardHeader';
-import { InquiryModal } from '@/components/InquiryModal';
+import { INQUIRY_FORM_URL, openInquiryForm } from '@/lib/inquiry';
 import { Logo } from '@/components/ui/Logo';
 import { track } from '@/lib/analytics';
 
@@ -15,11 +15,9 @@ const STEPS = [
 export function Landing() {
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
-  const [inquiry, setInquiry] = useState(false);
-
-  // ?inquiry=1 로 들어오면 모달 자동 오픈 (헤더 도입문의 링크 대응)
+  // ?inquiry=1 로 들어오면(예전 도입문의 링크) 구글폼으로 보낸다 — 자동 새 탭은 팝업 차단돼서 현재 탭 이동
   useEffect(() => {
-    if (params.get('inquiry') === '1') { setInquiry(true); params.delete('inquiry'); setParams(params, { replace: true }); }
+    if (params.get('inquiry') === '1') { params.delete('inquiry'); setParams(params, { replace: true }); window.location.href = INQUIRY_FORM_URL; }
   }, [params, setParams]);
 
   return (
@@ -31,7 +29,7 @@ export function Landing() {
         <div className="auth-blob left-[8%] top-[24%] h-64 w-64" style={{ background: 'radial-gradient(circle,#bae6fd,transparent 70%)', animationDelay: '-8s' }} />
       </div>
 
-      <OnboardHeader onInquiry={() => setInquiry(true)} />
+      <OnboardHeader onInquiry={() => openInquiryForm('header')} />
 
       {/* Hero */}
       <section className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-8 md:grid-cols-2 md:px-8 md:pt-16">
@@ -47,7 +45,7 @@ export function Landing() {
             <button className="btn-primary px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'hero_start' }); nav('/login'); }}>
               시작하기 <ArrowRight className="h-4 w-4" />
             </button>
-            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'hero_inquiry' }); setInquiry(true); }}>
+            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'hero_inquiry' }); openInquiryForm('hero'); }}>
               도입 문의
             </button>
           </div>
@@ -101,7 +99,7 @@ export function Landing() {
             <button className="btn-primary px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'bottom_start' }); nav('/login'); }}>
               로그인하고 시작
             </button>
-            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'bottom_inquiry' }); setInquiry(true); }}>
+            <button className="btn-ghost px-6 py-3.5 text-base" onClick={() => { track('owner_cta_click', { placement: 'bottom_inquiry' }); openInquiryForm('bottom'); }}>
               살펴보기
             </button>
           </div>
@@ -110,7 +108,6 @@ export function Landing() {
 
       <LandingFooter />
 
-      <InquiryModal open={inquiry} onClose={() => setInquiry(false)} />
     </div>
   );
 }

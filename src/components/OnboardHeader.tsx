@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
+import { openInquiryForm } from '@/lib/inquiry';
 
 /** 온보딩(랜딩/로그인/인증코드) 공통 상단바 — 로고 · 도입문의 · 로그인 */
 export function OnboardHeader({ onInquiry, floating = false }: { onInquiry?: () => void; floating?: boolean }) {
@@ -12,7 +13,7 @@ export function OnboardHeader({ onInquiry, floating = false }: { onInquiry?: () 
         </button>
         <nav className="flex items-center gap-1 sm:gap-2">
           <button
-            onClick={onInquiry ?? (() => nav('/?inquiry=1'))}
+            onClick={onInquiry ?? (() => openInquiryForm('header'))}
             className="rounded-xl px-3 py-2 text-sm font-medium text-muted hover:text-ink hover:bg-zinc-100 transition-colors"
           >
             도입문의

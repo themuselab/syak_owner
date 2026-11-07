@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Apple, MessageCircle } from 'lucide-react';
 import { OnboardHeader } from '@/components/OnboardHeader';
 import { AuthBackdrop } from '@/components/ui/AuthBackdrop';
-import { InquiryModal } from '@/components/InquiryModal';
+import { openInquiryForm } from '@/lib/inquiry';
 import { Spinner } from '@/components/ui/Spinner';
 import { ApiError, type Provider } from '@/lib/api';
 import { startLogin, SocialConfigError } from '@/lib/social';
@@ -10,7 +10,6 @@ import { startLogin, SocialConfigError } from '@/lib/social';
 export function Login() {
   const [busy, setBusy] = useState<Provider | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [inquiry, setInquiry] = useState(false);
 
   async function loginWith(provider: Provider) {
     if (busy) return;
@@ -30,7 +29,7 @@ export function Login() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       <AuthBackdrop />
-      <OnboardHeader onInquiry={() => setInquiry(true)} floating />
+      <OnboardHeader onInquiry={() => openInquiryForm('login_header')} floating />
 
       <main className="relative z-10 flex min-h-screen items-center justify-center px-5">
         <div className="card w-full max-w-md p-8 shadow-pop">
@@ -63,14 +62,13 @@ export function Login() {
 
           <p className="mt-6 text-center text-xs text-faint">
             서비스 코드를 잃어버리셨나요?{' '}
-            <button className="font-semibold text-brand-500 hover:underline" onClick={() => setInquiry(true)}>
+            <button className="font-semibold text-brand-500 hover:underline" onClick={() => openInquiryForm('login_lost_code')}>
               문의하기
             </button>
           </p>
         </div>
       </main>
 
-      <InquiryModal open={inquiry} onClose={() => setInquiry(false)} />
     </div>
   );
 }
