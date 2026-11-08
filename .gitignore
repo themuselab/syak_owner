@@ -25,3 +25,8 @@ npm-debug.log*
 
 # Archify 작업 폴더(후보 JSON·검증 영수증)
 .archify/
+
+# Personal Claude configuration and credentials
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/local-backup/
